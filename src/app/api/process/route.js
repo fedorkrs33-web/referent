@@ -1,21 +1,34 @@
-// src/app/api/process/route.js
-import { NextRequest, NextResponse } from 'next/server';
 import { parseArticle } from '@/lib/parser';
-import { callGigaChat } from '@/lib/aiClient';
 
 export async function POST(request) {
   try {
     const { url, action } = await request.json();
-
-    if (!url || !action) {
-      return NextResponse.json(
-        { error: 'URL и действие обязательны' },
-        { status: 400 }
-      );
+    if (!url) {
+      return NextResponse.json({ error: "URL обязателен" }, { status: 400 });
     }
 
+    // Получаем данные статьи
+    const article = await parseArticle(url);
+
+    // Если требуется просто JSON для вывода:
+    if (action === 'json') {
+      return NextResponse.json({ article });
+    }
+
+    // Дальше — обычная логика обработки ИИ (если action: "summary", "theses" и т.п.)
+    // Можно передавать только контент, либо title+content, или свой промпт.
+    // Например:
+    // prompt = `Кратко опиши, о чём статья "${article.title}": ${article.content}`;
+    // и далее отправлять в callGigaChat.
+
+    // ...
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
     // 1. Парсим статью
-    const text = await parseArticle(url);
+    const article = await parseArticle(url);
 
     // 2. Формируем промпт
     let prompt = '';

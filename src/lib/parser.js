@@ -1,31 +1,55 @@
-// src/lib/parser.js
 import axios from 'axios';
 import { load } from 'cheerio';
-
+{
+  date: "2023-01-10",
+  title: "Заголовок статьи",
+  content: "Основной текст статьи"
+}
 export async function parseArticle(url) {
   try {
-    // Загружаем HTML страницы
+    // Получаем HTML
     const { data: html } = await axios.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; ReferentBot/1.0)'
-      },
-      timeout: 10000 // 10 секунд
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ReferentBot/1.0)' },
+      timeout: 10000
     });
 
-    // Загружаем в Cheerio
     const $ = load(html);
 
-    // Удаляем ненужные элементы
+    // Удаляем мусор
     $('script, style, nav, header, footer, aside, .sidebar, .ads').remove();
 
-    // Извлекаем текст
-    const text = $('body')
-      .text()
-      .replace(/\s+/g, ' ')
-      .trim();
+    // Заголовок
+    let title = $('meta[property="og:title"]').attr('content')
+      || $('title').text()
+      || $('h1').first().text()
+      || '';
 
-    // Ограничиваем длину (GigaChat имеет лимиты)
-    return text.slice(0, 8000); // максимум 8000 символов
+    // Дата публикации
+    let date =
+      $('meta[property="article:published_time"]').attr('content')
+      || $('time').attr('datetime')
+      || $('time').text()
+      || $("meta[name='pubdate']").attr('content')
+      || '';
+
+    // Основной контент
+    let content =
+      $('article').text()
+      || $('.post').text()
+      || $('.content').text()
+      || $('main').text()
+      || $('body').text();
+
+    content = content.replace(/\s+/g, ' ').trim();
+
+    // Обрезаем очень длинные статьи для GigaChat
+    if (content.length > 8000) content = content.slice(0, 8000);
+
+    // Также уберём лишние пробелы и переносы
+    title = title.replace(/\s+/g, ' ').trim();
+    date = date.replace(/\s+/g, ' ').trim();
+
+    return { date, title, content };
   } catch (error) {
     console.error('Ошибка парсинга статьи:', error.message);
     throw new Error(`Не удалось загрузить статью: ${error.message}`);

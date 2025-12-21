@@ -7,23 +7,20 @@ export default function Home() {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleClick = async (action) => {
-    if (!url) return;
+  const handleExtract = async () => {
     setLoading(true);
-    setResult("");
-
+    setResult(null);
     try {
-      const res = await fetch('/api/process', {
+      const resp = await fetch('/api/process', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, action }),
+        body: JSON.stringify({ url, action: 'json' }), // ключевое: action: 'json'
       });
-      const data = await res.json();
-      setResult(data.result || "Нет ответа от сервера");
+      const data = await resp.json();
+      setResult(data.article || data.error || "Нет данных");
     } catch {
-      setResult("Ошибка при обращении к серверу.");
+      setResult("Ошибка!");
     }
-
     setLoading(false);
   };
 
@@ -40,23 +37,28 @@ export default function Home() {
           onChange={e => setUrl(e.target.value)}
         />
 
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <button
-            className="flex-1 px-4 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition disabled:opacity-50"
-            disabled={!url || loading}
-            onClick={() => handleClick('about')}
-          >О чем статья?</button>
-          <button
-            className="flex-1 px-4 py-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition disabled:opacity-50"
-            disabled={!url || loading}
-            onClick={() => handleClick('thesis')}
-          >Тезисы</button>
-          <button
-            className="flex-1 px-4 py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition disabled:opacity-50"
-            disabled={!url || loading}
-            onClick={() => handleClick('telegram')}
-          >Пост для Telegram</button>
-        </div>
+        <div className="flex flex-row space-x-8 mb-8 justify-center">
+  <button
+    className="w-44 h-24 rounded-lg bg-blue-800 text-white text-lg font-semibold hover:bg-blue-900 transition disabled:opacity-50"
+    disabled={!url || loading}
+    onClick={() => handleClick('about')}
+  >Структура статьи</button>
+  <button
+    className="w-44 h-24 rounded-lg bg-blue-800 text-white text-lg font-semibold hover:bg-blue-900 transition disabled:opacity-50"
+    disabled={!url || loading}
+    onClick={() => handleClick('about')}
+  >О чем статья?</button>
+  <button
+    className="w-44 h-24 rounded-lg bg-blue-800 text-white text-lg font-semibold hover:bg-blue-900 transition disabled:opacity-50"
+    disabled={!url || loading}
+    onClick={() => handleClick('thesis')}
+  >Тезисы</button>
+  <button
+    className="w-44 h-24 rounded-lg bg-blue-800 text-white text-lg font-semibold hover:bg-blue-900 transition disabled:opacity-50"
+    disabled={!url || loading}
+    onClick={() => handleClick('telegram')}
+  >Пост для Telegram</button>
+</div>
 
         <div className="min-h-[100px] w-full p-4 border border-zinc-200 rounded-md bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
           {loading ? "Генерация ответа..." : (result || "Результат появится здесь.")}
