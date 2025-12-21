@@ -7,23 +7,6 @@ export default function Home() {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleExtract = async () => {
-    setLoading(true);
-    setResult(null);
-    try {
-      const resp = await fetch('/api/process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, action: 'json' }), // ключевое: action: 'json'
-      });
-      const data = await resp.json();
-      setResult(data.article || data.error || "Нет данных");
-    } catch {
-      setResult("Ошибка!");
-    }
-    setLoading(false);
-  };
-
   const handleClick = async (action) => {
     if (!url) {
       setResult('Введите URL статьи');
@@ -48,7 +31,12 @@ export default function Home() {
         throw new Error(data.error || 'Неизвестная ошибка');
       }
 
-      setResult(data.text);
+      // Если результат - объект (для action === 'json'), преобразуем в JSON строку
+      if (action === 'json' && data.article) {
+        setResult(JSON.stringify(data.article, null, 2));
+      } else {
+        setResult(data.text || data.error || "Нет данных");
+      }
     } catch (err) {
       setResult(`❌ Ошибка: ${err.message}`);
     } finally {
@@ -73,7 +61,7 @@ export default function Home() {
   <button
     className="w-44 h-24 rounded-lg bg-blue-800 text-white text-lg font-semibold hover:bg-blue-900 transition disabled:opacity-50"
     disabled={!url || loading}
-    onClick={() => handleExtract('about')}
+    onClick={() => handleClick('json')}
   >Структура статьи</button>
   <button
     className="w-44 h-24 rounded-lg bg-blue-800 text-white text-lg font-semibold hover:bg-blue-900 transition disabled:opacity-50"
@@ -93,7 +81,13 @@ export default function Home() {
 </div>
 
         <div className="min-h-[100px] w-full p-4 border border-zinc-200 rounded-md bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
-          {loading ? "Генерация ответа..." : (result || "Результат появится здесь.")}
+          {loading ? (
+            "Генерация ответа..."
+          ) : result ? (
+            <pre className="whitespace-pre-wrap text-sm font-mono">{result}</pre>
+          ) : (
+            "Результат появится здесь."
+          )}
         </div>
       </div>
     </main>

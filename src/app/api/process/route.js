@@ -1,5 +1,5 @@
-import { callGigaChat } from '../../lib/aiClient';
-import { parseArticle } from '../../lib/parser'
+import { callGigaChat } from '../../../lib/aiClient';
+import { parseArticle } from '../../../lib/parser';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {

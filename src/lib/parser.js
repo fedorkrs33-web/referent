@@ -1,10 +1,6 @@
 import axios from 'axios';
 import { load } from 'cheerio';
-{
-  date: "2023-01-10",
-  title: "Заголовок статьи",
-  content: "Основной текст статьи"
-}
+
 export async function parseArticle(url) {
   try {
     // Получаем HTML
