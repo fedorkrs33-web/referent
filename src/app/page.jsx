@@ -24,10 +24,42 @@ export default function Home() {
     setLoading(false);
   };
 
+  const handleClick = async (action) => {
+    if (!url) {
+      setResult('Введите URL статьи');
+      return;
+    }
+
+    setLoading(true);
+    setResult('');
+
+    try {
+      const res = await fetch('/api/process', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url, action }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Неизвестная ошибка');
+      }
+
+      setResult(data.text);
+    } catch (err) {
+      setResult(`❌ Ошибка: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-zinc-50 dark:bg-black px-4 py-12">
       <div className="w-full max-w-xl p-8 bg-white dark:bg-zinc-900 rounded-xl shadow-md">
-        <h1 className="text-2xl font-bold mb-6 text-center text-zinc-800 dark:text-white">AI Article Assistant</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center text-zinc-800 dark:text-white">Помощник по написанию статей на основе ИИ</h1>
 
         <input
           type="url"
@@ -41,7 +73,7 @@ export default function Home() {
   <button
     className="w-44 h-24 rounded-lg bg-blue-800 text-white text-lg font-semibold hover:bg-blue-900 transition disabled:opacity-50"
     disabled={!url || loading}
-    onClick={() => handleClick('about')}
+    onClick={() => handleExtract('about')}
   >Структура статьи</button>
   <button
     className="w-44 h-24 rounded-lg bg-blue-800 text-white text-lg font-semibold hover:bg-blue-900 transition disabled:opacity-50"

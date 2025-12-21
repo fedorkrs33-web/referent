@@ -1,4 +1,6 @@
-import { parseArticle } from '@/lib/parser';
+import { callGigaChat } from '../../lib/aiClient';
+import { parseArticle } from '../../lib/parser'
+import { NextResponse } from 'next/server';
 
 export async function POST(request) {
   try {
@@ -15,47 +17,28 @@ export async function POST(request) {
       return NextResponse.json({ article });
     }
 
-    // Дальше — обычная логика обработки ИИ (если action: "summary", "theses" и т.п.)
-    // Можно передавать только контент, либо title+content, или свой промпт.
-    // Например:
-    // prompt = `Кратко опиши, о чём статья "${article.title}": ${article.content}`;
-    // и далее отправлять в callGigaChat.
-
-    // ...
-  } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
-
-    // 1. Парсим статью
-    const article = await parseArticle(url);
-
-    // 2. Формируем промпт
+    // Формируем промпт для ИИ
     let prompt = '';
     switch (action) {
-      case 'summary':
-        prompt = `Кратко опиши, о чём статья: ${text}`;
+      case 'about':
+        prompt = `О чём статья "${article.title}": ${article.content}`;
         break;
-      case 'theses':
-        prompt = `Выдели 3–5 ключевых тезисов: ${text}`;
+      case 'thesis':
+        prompt = `Выдели 3–5 ключевых тезисов из статьи "${article.title}": ${article.content}`;
         break;
       case 'telegram':
-        prompt = `Напиши короткий, яркий пост для Telegram. Эмоционально: ${text}`;
+        prompt = `Напиши короткий яркий пост для Telegram по статье "${article.title}": ${article.content}`;
         break;
       default:
         return NextResponse.json({ error: 'Неверное действие' }, { status: 400 });
     }
 
-    // 3. Запрос к GigaChat
+    // Запрос к GigaChat
     const result = await callGigaChat([{ role: 'user', content: prompt }]);
-
-    // 4. Ответ
+    // Ответ клиенту
     return NextResponse.json({ text: result });
+
   } catch (error) {
-    console.error('Ошибка в API:', error);
-    return NextResponse.json(
-      { error: 'Не удалось обработать запрос' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -1,7 +1,7 @@
 // src/lib/aiClient.js
 import axios from 'axios';
-
 const API_URL = process.env.NEXT_PUBLIC_GIGACHAT_API_URL || 'https://gigachat.devices.sberbank.ru/api/v1';
+
 
 export async function callGigaChat(messages) {
   try {
